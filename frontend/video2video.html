@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video to Video - VAX Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            background: rgba(0,0,0,0.2);
+        }
+        .upload-area:hover {
+            border-color: #4A4AFF;
+            background: rgba(74, 74, 255, 0.05);
+        }
+        #video-preview-container {
+            position: relative;
+            margin-top: 15px;
+            border-radius: 12px;
+            overflow: hidden;
+            display: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: #000;
+        }
+        #video-preview {
+            width: 100%;
+            display: block;
+            max-height: 400px;
+            object-fit: contain;
+        }
+        .remove-video-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            backdrop-filter: blur(4px);
+            z-index: 10;
+        }
+        .remove-video-btn:hover {
+            background: #ff4a4a;
+            border-color: #ff4a4a;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+    
+    <div class="container">
+        <nav class="navbar">
+            <a href="index.html" class="logo">VAX STUDIO</a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="studio.html">Studio Flow</a>
+                <a href="image2video.html">Image to Video</a>
+                <a href="text2video.html">Text to Video</a>
+                <a href="video2video.html">Video to Video</a>
+                <button class="btn-api" onclick="alert('🚀 API Access: Ready for integration!')">
+                    <i class="fas fa-key"></i> API Access
+                </button>
+            </div>
+        </nav>
+
+        <main>
+            <!-- Feature Hero Section -->
+            <section class="feature-hero">
+                <div class="hero-text">
+                    <h1>Video to Video</h1>
+                    <p>Re-imagine and enhance existing videos. Upload a source video, choose how much style to apply, write a prompt, and transform the entire cinematic structure.</p>
+                    <button class="btn-explore" onclick="document.getElementById('video-upload-section').scrollIntoView({behavior:'smooth'})">Start Modifying</button>
+                </div>
+                <div class="hero-visual">
+                    <div class="hero-video-wrapper">
+                        <video autoplay loop muted playsinline>
+                            <source src="https://videos.ltx.io/LTX-2/LTX-2-model-page/capabilities/style-consistency/ModelP-06-StyleCon-01_opt.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                    <div class="floating-prompt-card">
+                        <span class="prompt-badge">VIDEO + PROMPT</span>
+                        <div class="prompt-content">
+                            <i class="fas fa-magic" style="color: #4A4AFF; margin-right: 8px;"></i>
+                            Transforming into a 3D animated style, vibrant lighting...
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GPU Info Bar -->
+            <div id="gpu-bar" class="gpu-bar" style="display:none">
+                <div class="gpu-item">
+                    <span class="gpu-label">GPU</span>
+                    <span id="gpu-name" class="gpu-value">—</span>
+                </div>
+                <div class="gpu-divider"></div>
+                <div class="gpu-item">
+                    <span class="gpu-label">VRAM Bebas</span>
+                    <span id="gpu-vram" class="gpu-value">— GB</span>
+                </div>
+                <div class="gpu-divider"></div>
+                <div class="gpu-item">
+                    <span class="gpu-label">Model</span>
+                    <span id="model-status" class="gpu-value">Belum di-load</span>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+                <div id="status-badge" class="status-badge status-checking" style="margin-bottom: 0;">
+                    <span class="status-icon">⏳</span>
+                    <span id="status-text">Mengecek koneksi server...</span>
+                </div>
+                <button class="btn-refresh" id="btn-colab-toggle" onclick="toggleColabSettings()" style="height: 36px;">
+                    <i class="fas fa-network-wired" style="color: #a78bfa;"></i> Google Colab
+                </button>
+            </div>
+            
+            <div id="colab-settings-panel" class="card" style="display: none; padding: 24px; margin-bottom: 20px; border-color: rgba(167, 139, 250, 0.4); background: rgba(14, 14, 26, 0.95); backdrop-filter: blur(10px); z-index: 10;">
+                <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; color: #a78bfa; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-plug"></i> Pengaturan Koneksi Google Colab
+                </h3>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;">
+                    Secara default, VAX Studio terhubung ke server lokal di <code>http://localhost:8000</code>. Jika Anda menjalankan LTX-Video di Google Colab, tempelkan URL Cloudflare Tunnel / Ngrok yang didapatkan dari Colab di bawah ini untuk menghubungkan antarmuka ini secara langsung.
+                </p>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <input type="text" id="colab-url-input" class="form-input" style="flex: 1; min-width: 250px; margin: 0; padding: 10px 14px;" placeholder="Contoh: https://vax-studio.trycloudflare.com">
+                    <button class="btn-download" onclick="saveColabUrl()" style="padding: 10px 20px; font-size: 0.85rem; border-radius: 8px; white-space: nowrap;">Simpan URL</button>
+                    <button class="btn-secondary" onclick="resetColabUrl()" style="padding: 10px 20px; font-size: 0.85rem; border-radius: 8px; white-space: nowrap;">Reset Default</button>
+                </div>
+            </div>
+
+            <section class="card" id="video-upload-section">
+                <!-- Video Upload -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-video"></i> SOURCE VIDEO (REQUIRED)
+                    </label>
+                    <div class="upload-area" id="upload-drop-zone" onclick="document.getElementById('video-upload').click()">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #4A4AFF; margin-bottom: 15px;"></i>
+                        <p style="margin: 0; color: rgba(255,255,255,0.7);">Click or drag video here to upload</p>
+                        <p style="margin-top: 5px; font-size: 12px; color: rgba(255,255,255,0.4);">Supported formats: MP4, WEBM (Max 15MB, recommended: &lt;5s)</p>
+                        <input type="file" id="video-upload" accept="video/mp4, video/webm" style="display: none;" onchange="handleVideoUpload(event)">
+                    </div>
+                    <div id="video-preview-container">
+                        <video id="video-preview" controls autoplay muted></video>
+                        <button class="remove-video-btn" onclick="removeVideo()" title="Remove Video"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label class="form-label" for="prompt">
+                        <i class="fas fa-magic" style="margin-right: 8px;"></i> AI TRANSFORMATION PROMPT
+                    </label>
+                    <textarea id="prompt" rows="3" class="form-textarea" placeholder="Contoh: 'A man in a red jacket walks into the scene...' (Kosongkan jika hanya ingin menjernihkan video)"></textarea>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 5px;">Jika diisi, AI LTX-Video akan merender ulang video dari awal berdasarkan frame pertama video unggahan Anda.</div>
+                </div>
+
+                <!-- NEW GENERATIVE CONTROLS -->
+                <div class="form-row" style="display: flex; gap: 15px; margin-top: 15px;">
+                    <div class="form-group" style="flex: 1; margin: 0;">
+                        <label class="form-label" for="num-frames">Durasi (Frames)</label>
+                        <select id="num-frames" class="form-select">
+                            <option value="33">33 Frames (~1.3s)</option>
+                            <option value="65">65 Frames (~2.7s)</option>
+                            <option value="97">97 Frames (~4.0s)</option>
+                            <option value="129">129 Frames (~5.3s)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; margin: 0;">
+                        <label class="form-label" for="steps">Steps (Kualitas)</label>
+                        <input type="number" id="steps" class="form-input" value="40" min="10" max="100">
+                    </div>
+                </div>
+                
+                <div class="form-row" style="display: flex; gap: 15px; margin-top: 15px;">
+                    <div class="form-group" style="flex: 1; margin: 0;">
+                        <label class="form-label" for="cfg-scale">CFG Scale (Ketaatan)</label>
+                        <input type="number" id="cfg-scale" class="form-input" value="3.5" step="0.1" min="1.0" max="10.0">
+                    </div>
+                    <div class="form-group" style="flex: 1; margin: 0;">
+                        <label class="form-label" for="seed">Seed (-1 = Random)</label>
+                        <input type="number" id="seed" class="form-input" value="-1">
+                    </div>
+                </div>
+                <!-- END NEW CONTROLS -->
+
+                <div class="form-group" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                    <label class="form-label" for="upscaler">
+                        <i class="fas fa-expand-arrows-alt" style="margin-right: 8px;"></i> UPSCALING & DENOISING (RealBasicVSR)
+                    </label>
+                    <select id="upscaler" class="form-select" style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                        <option value="none">Tidak ada (Ukuran Asli)</option>
+                        <option value="2x" selected>2x Upscale (Tajam & Bersih dari Semut)</option>
+                        <option value="4x">4x Upscale (Ultra HD - Agak Lambat)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="face-restore">
+                        <i class="fas fa-smile" style="margin-right: 8px;"></i> FACE RESTORATION (CodeFormer)
+                    </label>
+                    <select id="face-restore" class="form-select" style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                        <option value="none" selected>Mati (Biarkan Wajah Asli)</option>
+                        <option value="codeformer">Aktif (Perbaiki Wajah AI yang Pleyot/Cacat)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="interpolation">
+                        <i class="fas fa-running" style="margin-right: 8px;"></i> MOTION SMOOTHING (RIFE)
+                    </label>
+                    <select id="interpolation" class="form-select" style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                        <option value="none" selected>Original (Frame Bawaan / Kaku)</option>
+                        <option value="2x">Smooth (Gandakan Frame jadi Halus)</option>
+                        <option value="4x">Ultra Smooth (Super Halus / Slow-Mo)</option>
+                    </select>
+                </div>
+
+                <div class="vram-warning" style="background: rgba(46, 204, 113, 0.1); border-left-color: #2ecc71;">
+                    <div class="warning-icon">🚀</div>
+                    <div class="warning-content">
+                        <strong>Kaggle 30GB RAM Optimized</strong>
+                        <p>Pipeline Enhancement AI ini memakan daya GPU yang sangat besar. Proses penajaman, perbaikan wajah, dan penyisipan frame memakan waktu ±2-5 menit.</p>
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="btn-generate" onclick="generateVideoToVideo()">
+                    <i class="fas fa-play" style="margin-right: 8px;"></i> Transform Video
+                </button>
+            </section>
+
+            <!-- Progress Section -->
+            <section id="progress-section" class="card progress-card" style="display:none">
+                <div class="progress-header">
+                    <div class="spinner"></div>
+                    <div>
+                        <h2 class="card-title">Transforming Video...</h2>
+                        <p id="progress-text" class="card-subtitle">Extracting frames and injecting latents...</p>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>© 2026 VAX Studio - Video to Video Engine</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        // UI logic for Video upload handling
+        function handleVideoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Check file size (max 15MB)
+                if(file.size > 15 * 1024 * 1024) {
+                    alert('Ukuran file video terlalu besar! Maksimal 15MB.');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const videoEl = document.getElementById('video-preview');
+                    videoEl.src = e.target.result;
+                    document.getElementById('video-preview-container').style.display = 'block';
+                    document.getElementById('upload-drop-zone').style.display = 'none';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeVideo() {
+            document.getElementById('video-upload').value = '';
+            document.getElementById('video-preview-container').style.display = 'none';
+            document.getElementById('video-preview').src = '';
+            document.getElementById('upload-drop-zone').style.display = 'block';
+        }
+
+        async function generateVideoToVideo() {
+            const videoInput = document.getElementById('video-upload');
+            if (!videoInput.files || videoInput.files.length === 0) {
+                alert("Harap unggah video sumber (Source Video) terlebih dahulu!");
+                return;
+            }
+            
+            const upscaler = document.getElementById('upscaler').value;
+            const faceRestore = document.getElementById('face-restore').value;
+            const interpolation = document.getElementById('interpolation').value;
+            const prompt = document.getElementById('prompt').value;
+            const numFrames = document.getElementById('num-frames').value;
+            const steps = document.getElementById('steps').value;
+            const cfgScale = document.getElementById('cfg-scale').value;
+            const seed = document.getElementById('seed').value;
+            
+            const file = videoInput.files[0];
+            const formData = new FormData();
+            formData.append("video_file", file);
+            formData.append("upscaler", upscaler);
+            formData.append("face_restore", faceRestore);
+            formData.append("interpolation", interpolation);
+            formData.append("prompt", prompt);
+            formData.append("num_frames", numFrames);
+            formData.append("steps", steps);
+            formData.append("cfg_scale", cfgScale);
+            formData.append("seed", seed);
+
+            document.getElementById('generate-btn').disabled = true;
+            document.getElementById('progress-section').style.display = 'block';
+            document.getElementById('progress-text').textContent = "Mengirim video ke server Kaggle...";
+            document.getElementById('progress-fill').style.width = '10%';
+
+            try {
+                // Menggunakan fungsi API_BASE dari app.js
+                const res = await fetch(`${API_BASE}/enhance_video`, {
+                    method: 'POST',
+                    headers: {
+                        "ngrok-skip-browser-warning": "true"
+                    },
+                    body: formData
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok && data.success) {
+                    document.getElementById('progress-text').textContent = "Server menerima video! Menunggu antrian enhancement...";
+                    document.getElementById('progress-fill').style.width = '30%';
+                    // Gunakan fungsi polling dari app.js
+                    if (typeof startPolling === "function") {
+                        startPolling(data.job_id);
+                    }
+                } else {
+                    throw new Error(data.error || "Gagal memulai proses Enhancement");
+                }
+            } catch (err) {
+                alert("❌ Error: " + err.message);
+                document.getElementById('generate-btn').disabled = false;
+                document.getElementById('progress-section').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
