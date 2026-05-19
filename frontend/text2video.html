@@ -22,7 +22,7 @@
                 <a href="studio.html">Studio Flow</a>
                 <a href="image2video.html">Image to Video</a>
                 <a href="text2video.html">Text to Video</a>
-                <a href="video2video.html">Video to Video</a>
+                <a href="video2video.html">Video Editing</a>
                 <button class="btn-api" onclick="alert('🚀 API Access: Ready for integration!')">
                     <i class="fas fa-key"></i> API Access
                 </button>
@@ -60,17 +60,17 @@
                 </div>
                 <div class="gpu-divider"></div>
                 <div class="gpu-item">
-                    <span class="gpu-label">VRAM Bebas</span>
+                    <span class="gpu-label">Free VRAM</span>
                     <span id="gpu-vram" class="gpu-value">— GB</span>
                 </div>
                 <div class="gpu-divider"></div>
                 <div class="gpu-item">
                     <span class="gpu-label">Model</span>
-                    <span id="model-status" class="gpu-value">Belum di-load</span>
+                    <span id="model-status" class="gpu-value">Not loaded</span>
                 </div>
                 <div class="gpu-divider"></div>
                 <div class="gpu-item">
-                    <span class="gpu-label">Antrian</span>
+                    <span class="gpu-label">Queue</span>
                     <span id="queue-size" class="gpu-value">0</span>
                 </div>
             </div>
@@ -78,7 +78,7 @@
             <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
                 <div id="status-badge" class="status-badge status-checking" style="margin-bottom: 0;">
                     <span class="status-icon">⏳</span>
-                    <span id="status-text">Mengecek koneksi server...</span>
+                    <span id="status-text">Checking server connection...</span>
                 </div>
                 <button class="btn-refresh" id="btn-colab-toggle" onclick="toggleColabSettings()" style="height: 36px;">
                     <i class="fas fa-network-wired" style="color: #a78bfa;"></i> Google Colab
@@ -87,14 +87,14 @@
             
             <div id="colab-settings-panel" class="card" style="display: none; padding: 24px; margin-bottom: 20px; border-color: rgba(167, 139, 250, 0.4); background: rgba(14, 14, 26, 0.95); backdrop-filter: blur(10px); z-index: 10;">
                 <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; color: #a78bfa; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-plug"></i> Pengaturan Koneksi Google Colab
+                    <i class="fas fa-plug"></i> Google Colab Connection Settings
                 </h3>
                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;">
-                    Secara default, VAX Studio terhubung ke server lokal di <code>http://localhost:8000</code>. Jika Anda menjalankan LTX-Video di Google Colab, tempelkan URL Cloudflare Tunnel / Ngrok yang didapatkan dari Colab di bawah ini untuk menghubungkan antarmuka ini secara langsung.
+                    By default, VAX Studio connects to the local server at <code>http://localhost:8000</code>. If you are running LTX-Video in Google Colab, paste the Cloudflare Tunnel / Ngrok URL obtained from Colab below to connect this interface directly.
                 </p>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <input type="text" id="colab-url-input" class="form-input" style="flex: 1; min-width: 250px; margin: 0; padding: 10px 14px;" placeholder="Contoh: https://vax-studio.trycloudflare.com">
-                    <button class="btn-download" onclick="saveColabUrl()" style="padding: 10px 20px; font-size: 0.85rem; border-radius: 8px; white-space: nowrap;">Simpan URL</button>
+                    <input type="text" id="colab-url-input" class="form-input" style="flex: 1; min-width: 250px; margin: 0; padding: 10px 14px;" placeholder="Example: https://vax-studio.trycloudflare.com">
+                    <button class="btn-download" onclick="saveColabUrl()" style="padding: 10px 20px; font-size: 0.85rem; border-radius: 8px; white-space: nowrap;">Save URL</button>
                     <button class="btn-secondary" onclick="resetColabUrl()" style="padding: 10px 20px; font-size: 0.85rem; border-radius: 8px; white-space: nowrap;">Reset Default</button>
                 </div>
             </div>
@@ -121,7 +121,7 @@
                         <select id="resolution" class="form-select">
                             <option value="480x256" selected>480×256 — Standard</option>
                             <option value="512x320">512×320 — High (15GB VRAM)</option>
-                            <option value="640x352">640×352 — Ultra (Eksperimental)</option>
+                            <option value="640x352">640×352 — Ultra (Experimental)</option>
                         </select>
                     </div>
                     <div class="form-group">

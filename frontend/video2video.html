@@ -3,62 +3,324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video to Video - VAX Studio</title>
+    <title>AI Video Editor - VAX Studio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Modern Video Editor Visual Layout */
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        @media (max-width: 1024px) {
+            .editor-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Left Column: Media Player and Timeline */
+        .editor-left {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
         .upload-area {
             border: 2px dashed rgba(255,255,255,0.2);
             border-radius: 12px;
-            padding: 40px;
+            padding: 45px 30px;
             text-align: center;
             cursor: pointer;
-            transition: 0.3s;
-            background: rgba(0,0,0,0.2);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(14, 14, 26, 0.4);
+            backdrop-filter: blur(10px);
         }
         .upload-area:hover {
-            border-color: #4A4AFF;
-            background: rgba(74, 74, 255, 0.05);
+            border-color: #7c3aed;
+            background: rgba(124, 92, 246, 0.05);
+            box-shadow: 0 0 25px rgba(124, 92, 246, 0.1);
         }
+        
         #video-preview-container {
             position: relative;
-            margin-top: 15px;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
             display: none;
             border: 1px solid rgba(255,255,255,0.1);
             background: #000;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
         #video-preview {
             width: 100%;
             display: block;
-            max-height: 400px;
+            max-height: 420px;
             object-fit: contain;
         }
+        
         .remove-video-btn {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
+            top: 15px;
+            right: 15px;
+            background: rgba(10, 10, 20, 0.85);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.2);
             border-radius: 50%;
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: 0.2s;
-            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+            backdrop-filter: blur(8px);
             z-index: 10;
         }
         .remove-video-btn:hover {
-            background: #ff4a4a;
-            border-color: #ff4a4a;
+            background: #f87171;
+            color: white;
+            border-color: #f87171;
+            box-shadow: 0 0 15px rgba(248, 113, 113, 0.4);
+            transform: scale(1.05);
+        }
+        
+        /* Multi-Track Editor Timeline */
+        .editor-timeline {
+            background: rgba(14, 14, 26, 0.8);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.01);
+        }
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding-bottom: 10px;
+        }
+        .timeline-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .timecode {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--purple-400);
+            background: rgba(124, 92, 246, 0.1);
+            padding: 3px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(124, 92, 246, 0.15);
+        }
+        
+        .timeline-tracks {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+        .time-ruler {
+            height: 22px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: relative;
+            margin-bottom: 6px;
+            display: flex;
+        }
+        .ruler-mark {
+            position: absolute;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            transform: translateX(-50%);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .playhead {
+            position: absolute;
+            top: 24px;
+            bottom: 0;
+            left: 0%;
+            width: 2px;
+            background: #ff4aff;
+            z-index: 20;
+            pointer-events: none;
+            box-shadow: 0 0 10px #ff4aff;
+        }
+        .playhead-head {
+            position: absolute;
+            top: -4px;
+            left: -5px;
+            width: 12px;
+            height: 12px;
+            background: #ff4aff;
+            border-radius: 50%;
+            box-shadow: 0 0 12px #ff4aff;
+        }
+        
+        .timeline-track {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            height: 42px;
+            padding: 0 12px;
+            border: 1px solid rgba(255,255,255,0.03);
+            transition: all 0.2s ease;
+        }
+        .timeline-track:hover {
+            background: rgba(255,255,255,0.02);
+            border-color: rgba(255,255,255,0.06);
+        }
+        .track-label {
+            width: 130px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            border-right: 1px solid rgba(255,255,255,0.06);
+            margin-right: 12px;
+            height: 100%;
+        }
+        .track-clips {
+            flex: 1;
+            position: relative;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .timeline-clip {
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0 12px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            transition: all 0.3s ease;
+        }
+        .clip-source {
+            width: 100%;
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.3) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+        }
+        .clip-redraw {
+            width: 100%;
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed rgba(255,255,255,0.1);
+            color: var(--text-muted);
+        }
+        .clip-redraw.active {
+            background: linear-gradient(90deg, rgba(236, 72, 153, 0.15) 0%, rgba(236, 72, 153, 0.35) 100%);
+            border: 1px solid rgba(236, 72, 153, 0.5);
+            color: #fbcfe8;
+        }
+        .clip-redraw.active-face {
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.35) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #d1fae5;
+        }
+        
+        .chip-enhancer {
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            height: 26px;
+            padding: 0 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            font-size: 0.68rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .chip-enhancer.active-upscale {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            color: #bae6fd;
+        }
+        .chip-enhancer.active-face {
+            background: rgba(52, 211, 153, 0.15);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            color: #a7f3d0;
+        }
+        .chip-enhancer.active-motion {
+            background: rgba(251, 191, 36, 0.15);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+            color: #fef08a;
+        }
+        
+        /* Right Column: Editor Dashboard & Controls */
+        .editor-right-card {
+            background: rgba(14, 14, 26, 0.95);
+            border: 1px solid rgba(124, 58, 237, 0.15);
+            border-radius: 20px;
+            padding: 26px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        
+        .settings-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 24px;
+            gap: 8px;
+        }
+        .settings-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 4px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .settings-tab:hover {
+            color: white;
+        }
+        .settings-tab.active {
+            color: var(--purple-400);
+            border-bottom-color: var(--purple-500);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: tabFadeIn 0.3s ease;
+        }
+        
+        @keyframes tabFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -67,6 +329,7 @@
     <div class="bg-glow bg-glow-2"></div>
     
     <div class="container">
+        <!-- Navbar -->
         <nav class="navbar">
             <a href="index.html" class="logo">VAX STUDIO</a>
             <div class="nav-links">
@@ -74,7 +337,7 @@
                 <a href="studio.html">Studio Flow</a>
                 <a href="image2video.html">Image to Video</a>
                 <a href="text2video.html">Text to Video</a>
-                <a href="video2video.html">Video to Video</a>
+                <a href="video2video.html" style="color: white; font-weight: 700;">Video Editing</a>
                 <button class="btn-api" onclick="alert('🚀 API Access: Ready for integration!')">
                     <i class="fas fa-key"></i> API Access
                 </button>
@@ -83,11 +346,15 @@
 
         <main>
             <!-- Feature Hero Section -->
-            <section class="feature-hero">
+            <section class="feature-hero" style="margin-bottom: 20px;">
                 <div class="hero-text">
-                    <h1>Video to Video</h1>
-                    <p>Re-imagine and enhance existing videos. Upload a source video, choose how much style to apply, write a prompt, and transform the entire cinematic structure.</p>
-                    <button class="btn-explore" onclick="document.getElementById('video-upload-section').scrollIntoView({behavior:'smooth'})">Start Modifying</button>
+                    <div class="header-badge">
+                        <span class="pulse-dot"></span>
+                        AI PRODUCTION ENGINE
+                    </div>
+                    <h1>AI Video Editor</h1>
+                    <p>Re-style, sharpen, and perfect existing videos. Upload your source file, draw a new look via prompt using the LTX-Video generator, upscale up to 4x, fix faces, and interpolate frames for flawless motion.</p>
+                    <button class="btn-explore" onclick="document.getElementById('editor-workspace').scrollIntoView({behavior:'smooth'})">Launch Workshop</button>
                 </div>
                 <div class="hero-visual">
                     <div class="hero-video-wrapper">
@@ -96,10 +363,10 @@
                         </video>
                     </div>
                     <div class="floating-prompt-card">
-                        <span class="prompt-badge">VIDEO + PROMPT</span>
+                        <span class="prompt-badge">AI EDITING WORKFLOW</span>
                         <div class="prompt-content">
-                            <i class="fas fa-magic" style="color: #4A4AFF; margin-right: 8px;"></i>
-                            Transforming into a 3D animated style, vibrant lighting...
+                            <i class="fas fa-scissors" style="color: #ff4aff; margin-right: 8px;"></i>
+                            Redrawing character + RealBasicVSR 2x + RIFE 2x Smoothing
                         </div>
                     </div>
                 </div>
@@ -113,20 +380,21 @@
                 </div>
                 <div class="gpu-divider"></div>
                 <div class="gpu-item">
-                    <span class="gpu-label">VRAM Bebas</span>
+                    <span class="gpu-label">Free VRAM</span>
                     <span id="gpu-vram" class="gpu-value">— GB</span>
                 </div>
                 <div class="gpu-divider"></div>
                 <div class="gpu-item">
-                    <span class="gpu-label">Model</span>
-                    <span id="model-status" class="gpu-value">Belum di-load</span>
+                    <span class="gpu-label">Model status</span>
+                    <span id="model-status" class="gpu-value">Not loaded</span>
                 </div>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+            <!-- Server Connection Alerts -->
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 25px; flex-wrap: wrap;">
                 <div id="status-badge" class="status-badge status-checking" style="margin-bottom: 0;">
                     <span class="status-icon">⏳</span>
-                    <span id="status-text">Mengecek koneksi server...</span>
+                    <span id="status-text">Checking server connection...</span>
                 </div>
                 <button class="btn-refresh" id="btn-colab-toggle" onclick="toggleColabSettings()" style="height: 36px;">
                     <i class="fas fa-network-wired" style="color: #a78bfa;"></i> Google Colab
@@ -135,125 +403,249 @@
             
             <div id="colab-settings-panel" class="card" style="display: none; padding: 24px; margin-bottom: 20px; border-color: rgba(167, 139, 250, 0.4); background: rgba(14, 14, 26, 0.95); backdrop-filter: blur(10px); z-index: 10;">
                 <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 12px; color: #a78bfa; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-plug"></i> Pengaturan Koneksi Google Colab
+                    <i class="fas fa-plug"></i> Google Colab Connection Settings
                 </h3>
                 <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;">
-                    Secara default, VAX Studio terhubung ke server lokal di <code>http://localhost:8000</code>. Jika Anda menjalankan LTX-Video di Google Colab, tempelkan URL Cloudflare Tunnel / Ngrok yang didapatkan dari Colab di bawah ini untuk menghubungkan antarmuka ini secara langsung.
+                    By default, VAX Studio connects to the local server at <code>http://localhost:8000</code>. If you are running LTX-Video in Google Colab, paste the Cloudflare Tunnel / Ngrok URL obtained from Colab below to connect this interface directly.
                 </p>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <input type="text" id="colab-url-input" class="form-input" style="flex: 1; min-width: 250px; margin: 0; padding: 10px 14px;" placeholder="Contoh: https://vax-studio.trycloudflare.com">
-                    <button class="btn-download" onclick="saveColabUrl()" style="padding: 10px 20px; font-size: 0.85rem; border-radius: 8px; white-space: nowrap;">Simpan URL</button>
+                    <input type="text" id="colab-url-input" class="form-input" style="flex: 1; min-width: 250px; margin: 0; padding: 10px 14px;" placeholder="Example: https://vax-studio.trycloudflare.com">
+                    <button class="btn-download" onclick="saveColabUrl()" style="padding: 10px 20px; font-size: 0.85rem; border-radius: 8px; white-space: nowrap;">Save URL</button>
                     <button class="btn-secondary" onclick="resetColabUrl()" style="padding: 10px 20px; font-size: 0.85rem; border-radius: 8px; white-space: nowrap;">Reset Default</button>
                 </div>
             </div>
 
-            <section class="card" id="video-upload-section">
-                <!-- Video Upload -->
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-video"></i> SOURCE VIDEO (REQUIRED)
-                    </label>
-                    <div class="upload-area" id="upload-drop-zone" onclick="document.getElementById('video-upload').click()">
-                        <i class="fas fa-cloud-upload-alt" style="font-size: 40px; color: #4A4AFF; margin-bottom: 15px;"></i>
-                        <p style="margin: 0; color: rgba(255,255,255,0.7);">Click or drag video here to upload</p>
-                        <p style="margin-top: 5px; font-size: 12px; color: rgba(255,255,255,0.4);">Supported formats: MP4, WEBM (Max 15MB, recommended: &lt;5s)</p>
-                        <input type="file" id="video-upload" accept="video/mp4, video/webm" style="display: none;" onchange="handleVideoUpload(event)">
-                    </div>
-                    <div id="video-preview-container">
-                        <video id="video-preview" controls autoplay muted></video>
-                        <button class="remove-video-btn" onclick="removeVideo()" title="Remove Video"><i class="fas fa-times"></i></button>
-                    </div>
-                </div>
+            <!-- Workspace Section -->
+            <div class="editor-layout" id="editor-workspace">
+                
+                <!-- LEFT COLUMN: Player & Timeline -->
+                <div class="editor-left">
+                    <section class="card" style="padding: 20px; margin-bottom: 0; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px;">
+                                <!-- Column 1: Video Reference (Motion Guide) -->
+                                <div>
+                                    <div class="form-label" style="margin-bottom: 10px;">
+                                        <i class="fas fa-video" style="color: #6366f1"></i> 1. VIDEO REFERENCE
+                                    </div>
+                                    <div class="upload-area" id="upload-drop-zone" onclick="document.getElementById('video-upload').click()" style="padding: 25px 15px; height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                                        <i class="fas fa-film" style="font-size: 28px; color: #6366f1; margin-bottom: 8px;"></i>
+                                        <p style="margin: 0; color: rgba(255,255,255,0.8); font-weight: 600; font-size: 0.78rem; line-height: 1.3;">Upload Source Video</p>
+                                        <p style="margin-top: 4px; font-size: 9px; color: var(--text-secondary);">MP4/WEBM (Max 15MB)</p>
+                                        <input type="file" id="video-upload" accept="video/mp4, video/webm" style="display: none;" onchange="handleVideoUpload(event)">
+                                    </div>
+                                    <div id="video-preview-container" style="display: none; height: 160px; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #000;">
+                                        <video id="video-preview" controls autoplay muted style="width: 100%; height: 100%; object-fit: contain;"></video>
+                                        <button class="remove-video-btn" onclick="removeVideo()" title="Remove Source Video" style="width: 28px; height: 28px; top: 8px; right: 8px; font-size: 11px;"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Column 2: Face Reference (Actor/Character) -->
+                                <div>
+                                    <div class="form-label" style="margin-bottom: 10px;">
+                                        <i class="fas fa-user-circle" style="color: #10b981"></i> 2. FACE REFERENCE
+                                    </div>
+                                    <div class="upload-area" id="face-drop-zone" onclick="document.getElementById('face-upload').click()" style="padding: 25px 15px; height: 160px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-color: rgba(16, 185, 129, 0.2);">
+                                        <i class="fas fa-user-plus" style="font-size: 28px; color: #10b981; margin-bottom: 8px;"></i>
+                                        <p style="margin: 0; color: rgba(255,255,255,0.8); font-weight: 600; font-size: 0.78rem; line-height: 1.3;">Upload Actor Face</p>
+                                        <p style="margin-top: 4px; font-size: 9px; color: var(--text-secondary);">PNG/JPG/WEBP (Max 5MB)</p>
+                                        <input type="file" id="face-upload" accept="image/png, image/jpeg, image/webp" style="display: none;" onchange="handleFaceUpload(event)">
+                                    </div>
+                                    <div id="face-preview-container" style="display: none; height: 160px; position: relative; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); background: #000;">
+                                        <img id="face-preview-img" src="" alt="Face Preview" style="width: 100%; height: 100%; object-fit: contain;">
+                                        <button class="remove-video-btn" onclick="removeFace()" title="Remove Face Reference" style="width: 28px; height: 28px; top: 8px; right: 8px; font-size: 11px; color: #f87171; border-color: rgba(248, 113, 113, 0.2);"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                <div class="form-group" style="margin-top: 20px;">
-                    <label class="form-label" for="prompt">
-                        <i class="fas fa-magic" style="margin-right: 8px;"></i> AI TRANSFORMATION PROMPT
-                    </label>
-                    <textarea id="prompt" rows="3" class="form-textarea" placeholder="Contoh: 'A man in a red jacket walks into the scene...' (Kosongkan jika hanya ingin menjernihkan video)"></textarea>
-                    <div style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 5px;">Jika diisi, AI LTX-Video akan merender ulang video dari awal berdasarkan frame pertama video unggahan Anda.</div>
-                </div>
+                        <!-- Beautiful Interactive Timeline -->
+                        <div class="editor-timeline" style="margin-top: 20px;">
+                            <div class="timeline-header">
+                                <span class="timeline-title">
+                                    <i class="fas fa-stream" style="color: #ff4aff; font-size: 10px;"></i> Interactive Multi-Track Timeline
+                                </span>
+                                <span class="timecode" id="timeline-timecode">00:00:00 / 00:00:00</span>
+                            </div>
+                            
+                            <div class="timeline-tracks">
+                                <!-- Time Ruler Marks -->
+                                <div class="time-ruler">
+                                    <div class="ruler-mark" style="left: 0%;">0.0s</div>
+                                    <div class="ruler-mark" style="left: 20%;">1.0s</div>
+                                    <div class="ruler-mark" style="left: 40%;">2.0s</div>
+                                    <div class="ruler-mark" style="left: 60%;">3.0s</div>
+                                    <div class="ruler-mark" style="left: 80%;">4.0s</div>
+                                    <div class="ruler-mark" style="left: 100%;">5.0s</div>
+                                </div>
+                                
+                                <!-- Playhead bar -->
+                                <div class="playhead" id="timeline-playhead" style="left: 0%;">
+                                    <div class="playhead-head"></div>
+                                </div>
 
-                <!-- NEW GENERATIVE CONTROLS -->
-                <div class="form-row" style="display: flex; gap: 15px; margin-top: 15px;">
-                    <div class="form-group" style="flex: 1; margin: 0;">
-                        <label class="form-label" for="num-frames">Durasi (Frames)</label>
-                        <select id="num-frames" class="form-select">
-                            <option value="33">33 Frames (~1.3s)</option>
-                            <option value="65">65 Frames (~2.7s)</option>
-                            <option value="97">97 Frames (~4.0s)</option>
-                            <option value="129">129 Frames (~5.3s)</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="flex: 1; margin: 0;">
-                        <label class="form-label" for="steps">Steps (Kualitas)</label>
-                        <input type="number" id="steps" class="form-input" value="40" min="10" max="100">
-                    </div>
+                                <!-- Track 1: Source Video -->
+                                <div class="timeline-track">
+                                    <div class="track-label">
+                                        <i class="fas fa-video" style="color: #6366f1;"></i> Media Track
+                                    </div>
+                                    <div class="track-clips">
+                                        <div class="timeline-clip clip-source" id="source-track-clip">
+                                            No source video loaded
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Track 2: Actor Face reference -->
+                                <div class="timeline-track">
+                                    <div class="track-label">
+                                        <i class="fas fa-user-circle" style="color: #10b981;"></i> Actor Face
+                                    </div>
+                                    <div class="track-clips">
+                                        <div class="timeline-clip clip-redraw" id="face-track-clip" style="border-color: rgba(16, 185, 129, 0.1); color: var(--text-muted);">
+                                            (Optional) Actor Face: Passthrough
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Track 3: Prompt Redraw Layer -->
+                                <div class="timeline-track">
+                                    <div class="track-label">
+                                        <i class="fas fa-magic" style="color: #ec4899;"></i> AI Style Layer
+                                    </div>
+                                    <div class="track-clips">
+                                        <div class="timeline-clip clip-redraw" id="redraw-track-clip">
+                                            Generative Style: Passthrough (Original)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Track 4: Video Enhancer Pipes -->
+                                <div class="timeline-track">
+                                    <div class="track-label">
+                                        <i class="fas fa-bolt" style="color: #eab308;"></i> Pipeline Pipes
+                                    </div>
+                                    <div class="track-clips" style="gap: 6px;">
+                                        <div class="chip-enhancer" id="upscale-chip">RealBasicVSR (Off)</div>
+                                        <div class="chip-enhancer" id="face-chip">CodeFormer (Off)</div>
+                                        <div class="chip-enhancer" id="rife-chip">RIFE Motion (Off)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
                 </div>
                 
-                <div class="form-row" style="display: flex; gap: 15px; margin-top: 15px;">
-                    <div class="form-group" style="flex: 1; margin: 0;">
-                        <label class="form-label" for="cfg-scale">CFG Scale (Ketaatan)</label>
-                        <input type="number" id="cfg-scale" class="form-input" value="3.5" step="0.1" min="1.0" max="10.0">
-                    </div>
-                    <div class="form-group" style="flex: 1; margin: 0;">
-                        <label class="form-label" for="seed">Seed (-1 = Random)</label>
-                        <input type="number" id="seed" class="form-input" value="-1">
-                    </div>
+                <!-- RIGHT COLUMN: Parameters Dashboard -->
+                <div class="editor-right">
+                    <section class="editor-right-card">
+                        <div class="settings-tabs">
+                            <div class="settings-tab active" id="tab-style" onclick="switchTab('style')">
+                                <i class="fas fa-palette"></i> Style Redraw
+                            </div>
+                            <div class="settings-tab" id="tab-enhance" onclick="switchTab('enhance')">
+                                <i class="fas fa-wand-magic-sparkles"></i> Enhancers
+                            </div>
+                        </div>
+                        
+                        <!-- TAB 1: AI Prompt Redraw Settings -->
+                        <div class="tab-content active" id="content-style">
+                            <div class="form-group">
+                                <label class="form-label" for="prompt">
+                                    <i class="fas fa-feather-alt" style="color: #ec4899;"></i> AI EDITING PROMPT
+                                </label>
+                                <textarea id="prompt" rows="3" class="form-textarea" placeholder="Example: 'Transform to claymation style, colorful background, highly detailed...' (Leave empty if you only want to repair / upscale the original video)"></textarea>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px; line-height: 1.4;">LTX-Video AI will re-render the video based on the first frame of the original video and your description.</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="num-frames">Output Duration (Frames)</label>
+                                <select id="num-frames" class="form-select">
+                                    <option value="33" selected>33 Frames (~1.3s @ 24fps)</option>
+                                    <option value="65">65 Frames (~2.7s @ 24fps)</option>
+                                    <option value="97">97 Frames (~4.0s @ 24fps)</option>
+                                    <option value="129">129 Frames (~5.3s @ 24fps)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="settings-grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <div class="form-group">
+                                    <label class="form-label" for="steps">Steps (Quality)</label>
+                                    <input type="number" id="steps" class="form-input" value="40" min="10" max="100">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="cfg-scale">CFG Scale</label>
+                                    <input type="number" id="cfg-scale" class="form-input" value="3.5" step="0.1" min="1.0" max="10.0">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="seed">Seed (-1 = Random)</label>
+                                <input type="number" id="seed" class="form-input" value="-1">
+                            </div>
+                        </div>
+                        
+                        <!-- TAB 2: AI Enhancer Pipelines -->
+                        <div class="tab-content" id="content-enhance">
+                            <div class="form-group">
+                                <label class="form-label" for="upscaler">
+                                    <i class="fas fa-expand-arrows-alt" style="color: #38bdf8;"></i> UPSCALING & DENOISING (RealBasicVSR)
+                                </label>
+                                <select id="upscaler" class="form-select">
+                                    <option value="none">None (Original Size)</option>
+                                    <option value="2x" selected>2x Upscaling (Sharp & Clear)</option>
+                                    <option value="4x">4x Upscaling (Ultra HD - Slower)</option>
+                                </select>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Intelligently removes grain/noise and increases resolution.</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="face-restore">
+                                    <i class="fas fa-smile-beam" style="color: #52d3a9;"></i> FACE RESTORATION (CodeFormer)
+                                </label>
+                                <select id="face-restore" class="form-select">
+                                    <option value="none" selected>Off (Keep Original Face)</option>
+                                    <option value="codeformer">On (Enhance AI Face)</option>
+                                </select>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Detects and reconstructs blurry human faces for symmetry.</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="interpolation">
+                                    <i class="fas fa-bolt" style="color: #eab308;"></i> MOTION SMOOTHING (RIFE)
+                                </label>
+                                <select id="interpolation" class="form-select">
+                                    <option value="none" selected>Original (Default Frame / Stiff)</option>
+                                    <option value="2x">Smooth (Double Frame Rate)</option>
+                                    <option value="4x">Ultra Smooth (Super Smooth slow-mo)</option>
+                                </select>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 4px;">Inserts artificial frames for smooth video transitions.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="vram-warning" style="background: rgba(124, 58, 237, 0.05); border-color: rgba(124, 58, 237, 0.2); margin-top: 10px;">
+                            <div class="warning-icon">🚀</div>
+                            <div class="warning-content">
+                                <strong style="color: var(--purple-400)">Kaggle 30GB RAM Optimized</strong>
+                                <p style="color: var(--text-secondary)">Neural rendering and upscaling processes take ±2-5 minutes depending on the chosen frame duration.</p>
+                            </div>
+                        </div>
+                        
+                        <button id="generate-btn" class="btn-generate" onclick="generateVideoToVideo()" style="margin-top: 20px;">
+                            <i class="fas fa-play" style="margin-right: 8px;"></i> Run AI Video Editor
+                        </button>
+                    </section>
                 </div>
-                <!-- END NEW CONTROLS -->
-
-                <div class="form-group" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                    <label class="form-label" for="upscaler">
-                        <i class="fas fa-expand-arrows-alt" style="margin-right: 8px;"></i> UPSCALING & DENOISING (RealBasicVSR)
-                    </label>
-                    <select id="upscaler" class="form-select" style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                        <option value="none">Tidak ada (Ukuran Asli)</option>
-                        <option value="2x" selected>2x Upscale (Tajam & Bersih dari Semut)</option>
-                        <option value="4x">4x Upscale (Ultra HD - Agak Lambat)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="face-restore">
-                        <i class="fas fa-smile" style="margin-right: 8px;"></i> FACE RESTORATION (CodeFormer)
-                    </label>
-                    <select id="face-restore" class="form-select" style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                        <option value="none" selected>Mati (Biarkan Wajah Asli)</option>
-                        <option value="codeformer">Aktif (Perbaiki Wajah AI yang Pleyot/Cacat)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="interpolation">
-                        <i class="fas fa-running" style="margin-right: 8px;"></i> MOTION SMOOTHING (RIFE)
-                    </label>
-                    <select id="interpolation" class="form-select" style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                        <option value="none" selected>Original (Frame Bawaan / Kaku)</option>
-                        <option value="2x">Smooth (Gandakan Frame jadi Halus)</option>
-                        <option value="4x">Ultra Smooth (Super Halus / Slow-Mo)</option>
-                    </select>
-                </div>
-
-                <div class="vram-warning" style="background: rgba(46, 204, 113, 0.1); border-left-color: #2ecc71;">
-                    <div class="warning-icon">🚀</div>
-                    <div class="warning-content">
-                        <strong>Kaggle 30GB RAM Optimized</strong>
-                        <p>Pipeline Enhancement AI ini memakan daya GPU yang sangat besar. Proses penajaman, perbaikan wajah, dan penyisipan frame memakan waktu ±2-5 menit.</p>
-                    </div>
-                </div>
-
-                <button id="generate-btn" class="btn-generate" onclick="generateVideoToVideo()">
-                    <i class="fas fa-play" style="margin-right: 8px;"></i> Transform Video
-                </button>
-            </section>
+                
+            </div>
 
             <!-- Progress Section -->
             <section id="progress-section" class="card progress-card" style="display:none">
                 <div class="progress-header">
                     <div class="spinner"></div>
                     <div>
-                        <h2 class="card-title">Transforming Video...</h2>
-                        <p id="progress-text" class="card-subtitle">Extracting frames and injecting latents...</p>
+                        <h2 class="card-title">Processing & Editing Video...</h2>
+                        <p id="progress-text" class="card-subtitle">Running neural upscalers and style engines...</p>
                     </div>
                 </div>
                 <div class="progress-bar-container">
@@ -261,23 +653,161 @@
                         <div id="progress-fill" class="progress-fill"></div>
                     </div>
                 </div>
+                <div class="progress-meta">
+                    Job ID: <code id="job-id-display" class="code-tag"></code>
+                    <span id="elapsed-time" class="elapsed">0s elapsed</span>
+                </div>
+            </section>
+
+            <!-- Result Section -->
+            <section id="result-section" class="card result-card" style="display:none">
+                <h2 class="card-title"><i class="fas fa-check-circle" style="color: var(--green); margin-right: 8px;"></i> Render Completed!</h2>
+                <p class="card-subtitle" style="margin-bottom: 20px;">Your edited video has been successfully generated and compiled by the AI pipelines.</p>
+                <div class="video-wrapper">
+                    <video id="result-video" class="result-video" controls autoplay loop muted></video>
+                </div>
+                <div class="result-meta">
+                    <div class="meta-item"><span class="meta-label">Seed</span><code id="result-seed" class="code-tag"></code></div>
+                    <div class="meta-item"><span class="meta-label">Duration</span><span id="result-duration" class="meta-value"></span>s</div>
+                    <div class="meta-item"><span class="meta-label">Filename</span><span id="result-filename" class="meta-value"></span></div>
+                </div>
+                <div class="result-actions">
+                    <a id="download-btn" class="btn-download" download><i class="fas fa-download"></i> Download Master</a>
+                    <button class="btn-secondary" onclick="resetForm()"><i class="fas fa-redo"></i> Open Editor</button>
+                </div>
+            </section>
+
+            <!-- Error Section -->
+            <section id="error-section" class="card error-card" style="display:none">
+                <h2 class="card-title" style="color: #f87171"><i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i> AI Editor Error</h2>
+                <p id="error-msg" class="error-text" style="margin-top: 10px; margin-bottom: 20px;"></p>
+                <button class="btn-secondary" onclick="resetForm()">Return to Editor</button>
+            </section>
+
+            <!-- Gallery Section -->
+            <section class="card">
+                <div class="gallery-header">
+                    <h2 class="card-title"><i class="fas fa-folder-open" style="color: var(--purple-400); margin-right: 8px;"></i> Exported Creations</h2>
+                    <button class="btn-refresh" onclick="loadGallery()" id="refresh-btn"><i class="fas fa-sync"></i> Refresh</button>
+                </div>
+                <div id="gallery" class="gallery"></div>
             </section>
         </main>
 
         <footer class="footer">
-            <p>© 2026 VAX Studio - Video to Video Engine</p>
+            <p>© 2026 VAX Studio - AI Video Editing Pipelines</p>
         </footer>
     </div>
 
     <script src="app.js"></script>
     <script>
+        // Tab switching utility
+        function switchTab(tabName) {
+            document.querySelectorAll('.settings-tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.getElementById(`content-${tabName}`).classList.add('active');
+        }
+
+        // Timeline synchronization variables
+        const videoPreview = document.getElementById('video-preview');
+        const timelinePlayhead = document.getElementById('timeline-playhead');
+        const timelineTimecode = document.getElementById('timeline-timecode');
+
+        // Dynamic playhead seek linking
+        if (videoPreview) {
+            videoPreview.addEventListener('timeupdate', () => {
+                if (videoPreview.duration) {
+                    const pct = (videoPreview.currentTime / videoPreview.duration) * 100;
+                    timelinePlayhead.style.left = `${pct}%`;
+                    
+                    const formatTime = (time) => {
+                        const mins = Math.floor(time / 60).toString().padStart(2, '0');
+                        const secs = Math.floor(time % 60).toString().padStart(2, '0');
+                        const ms = Math.floor((time % 1) * 100).toString().padStart(2, '0');
+                        return `${mins}:${secs}:${ms}`;
+                    };
+                    timelineTimecode.textContent = `${formatTime(videoPreview.currentTime)} / ${formatTime(videoPreview.duration)}`;
+                }
+            });
+        }
+
+        // Live Timeline visual updating based on input choices
+        function updateTimelineUI() {
+            const promptInput = document.getElementById('prompt').value.trim();
+            const redrawClip = document.getElementById('redraw-track-clip');
+            
+            // AI Prompt track highlight
+            if (promptInput) {
+                redrawClip.classList.add('active');
+                let truncatedPrompt = promptInput.length > 36 ? promptInput.substring(0, 36) + "..." : promptInput;
+                redrawClip.innerHTML = `<i class="fas fa-magic" style="color: #ec4899; margin-right: 6px;"></i> Style Redraw: "${truncatedPrompt}"`;
+            } else {
+                redrawClip.classList.remove('active');
+                redrawClip.innerHTML = `Generative Style: Passthrough (Original)`;
+            }
+            
+            // Actor Face track highlight
+            const faceInput = document.getElementById('face-upload');
+            const faceClip = document.getElementById('face-track-clip');
+            if (faceInput && faceInput.files && faceInput.files[0]) {
+                faceClip.className = 'timeline-clip clip-redraw active-face';
+                let faceName = faceInput.files[0].name;
+                let truncatedName = faceName.length > 20 ? faceName.substring(0, 20) + "..." : faceName;
+                faceClip.innerHTML = `<i class="fas fa-user-circle" style="color: #10b981; margin-right: 6px;"></i> Actor Ref: "${truncatedName}"`;
+            } else {
+                faceClip.className = 'timeline-clip clip-redraw';
+                faceClip.innerHTML = `(Optional) Actor Face: Passthrough`;
+            }
+            
+            // Upscale pipeline chip highlight
+            const upscaleVal = document.getElementById('upscaler').value;
+            const upscaleChip = document.getElementById('upscale-chip');
+            if (upscaleVal !== 'none') {
+                upscaleChip.className = 'chip-enhancer active-upscale';
+                upscaleChip.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 4px;"></i> RealBasicVSR ${upscaleVal}`;
+            } else {
+                upscaleChip.className = 'chip-enhancer';
+                upscaleChip.innerHTML = `RealBasicVSR (Off)`;
+            }
+            
+            // Face restore chip highlight
+            const faceVal = document.getElementById('face-restore').value;
+            const faceChip = document.getElementById('face-chip');
+            if (faceVal !== 'none') {
+                faceChip.className = 'chip-enhancer active-face';
+                faceChip.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 4px;"></i> CodeFormer On`;
+            } else {
+                faceChip.className = 'chip-enhancer';
+                faceChip.innerHTML = `CodeFormer (Off)`;
+            }
+            
+            // RIFE frame insertion chip highlight
+            const rifeVal = document.getElementById('interpolation').value;
+            const rifeChip = document.getElementById('rife-chip');
+            if (rifeVal !== 'none') {
+                rifeChip.className = 'chip-enhancer active-motion';
+                rifeChip.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 4px;"></i> RIFE ${rifeVal}`;
+            } else {
+                rifeChip.className = 'chip-enhancer';
+                rifeChip.innerHTML = `RIFE Motion (Off)`;
+            }
+        }
+
+        // Attach listeners for interactive timeline updates
+        document.getElementById('prompt').addEventListener('input', updateTimelineUI);
+        document.getElementById('upscaler').addEventListener('change', updateTimelineUI);
+        document.getElementById('face-restore').addEventListener('change', updateTimelineUI);
+        document.getElementById('interpolation').addEventListener('change', updateTimelineUI);
+
         // UI logic for Video upload handling
         function handleVideoUpload(event) {
             const file = event.target.files[0];
             if (file) {
                 // Check file size (max 15MB)
-                if(file.size > 15 * 1024 * 1024) {
-                    alert('Ukuran file video terlalu besar! Maksimal 15MB.');
+                if (file.size > 15 * 1024 * 1024) {
+                    alert('Video file size too large! Maximum 15MB.');
                     return;
                 }
                 
@@ -287,6 +817,10 @@
                     videoEl.src = e.target.result;
                     document.getElementById('video-preview-container').style.display = 'block';
                     document.getElementById('upload-drop-zone').style.display = 'none';
+                    
+                    // Update timeline clip label with filename
+                    const sourceClip = document.getElementById('source-track-clip');
+                    sourceClip.innerHTML = `<i class="fas fa-file-video" style="margin-right: 6px;"></i> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
                 }
                 reader.readAsDataURL(file);
             }
@@ -297,14 +831,52 @@
             document.getElementById('video-preview-container').style.display = 'none';
             document.getElementById('video-preview').src = '';
             document.getElementById('upload-drop-zone').style.display = 'block';
+            
+            const sourceClip = document.getElementById('source-track-clip');
+            sourceClip.innerHTML = `No source video loaded`;
+            
+            const timelineTimecode = document.getElementById('timeline-timecode');
+            timelineTimecode.textContent = '00:00:00 / 00:00:00';
+            document.getElementById('timeline-playhead').style.left = '0%';
+        }
+
+        // UI logic for Face Image upload handling
+        function handleFaceUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Check file size (max 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('Image file size too large! Maximum 5MB.');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('face-preview-img').src = e.target.result;
+                    document.getElementById('face-preview-container').style.display = 'block';
+                    document.getElementById('face-drop-zone').style.display = 'none';
+                    updateTimelineUI();
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function removeFace() {
+            document.getElementById('face-upload').value = '';
+            document.getElementById('face-preview-container').style.display = 'none';
+            document.getElementById('face-preview-img').src = '';
+            document.getElementById('face-drop-zone').style.display = 'block';
+            updateTimelineUI();
         }
 
         async function generateVideoToVideo() {
             const videoInput = document.getElementById('video-upload');
             if (!videoInput.files || videoInput.files.length === 0) {
-                alert("Harap unggah video sumber (Source Video) terlebih dahulu!");
+                alert("Please upload a source video first!");
                 return;
             }
+            
+            const faceInput = document.getElementById('face-upload');
             
             const upscaler = document.getElementById('upscaler').value;
             const faceRestore = document.getElementById('face-restore').value;
@@ -318,6 +890,12 @@
             const file = videoInput.files[0];
             const formData = new FormData();
             formData.append("video_file", file);
+            
+            // Append optional face reference image
+            if (faceInput && faceInput.files && faceInput.files[0]) {
+                formData.append("face_image", faceInput.files[0]);
+            }
+            
             formData.append("upscaler", upscaler);
             formData.append("face_restore", faceRestore);
             formData.append("interpolation", interpolation);
@@ -326,14 +904,15 @@
             formData.append("steps", steps);
             formData.append("cfg_scale", cfgScale);
             formData.append("seed", seed);
-
+ 
             document.getElementById('generate-btn').disabled = true;
-            document.getElementById('progress-section').style.display = 'block';
-            document.getElementById('progress-text').textContent = "Mengirim video ke server Kaggle...";
+            document.getElementById('generate-btn').innerHTML = `<i class="fas fa-spinner fa-spin"></i> Processing...`;
+            
+            showSection("progress");
+            document.getElementById('progress-text').textContent = "Sending video to Kaggle server...";
             document.getElementById('progress-fill').style.width = '10%';
-
+ 
             try {
-                // Menggunakan fungsi API_BASE dari app.js
                 const res = await fetch(`${API_BASE}/enhance_video`, {
                     method: 'POST',
                     headers: {
@@ -345,21 +924,36 @@
                 const data = await res.json();
                 
                 if (res.ok && data.success) {
-                    document.getElementById('progress-text').textContent = "Server menerima video! Menunggu antrian enhancement...";
+                    currentJobId = data.job_id;
+                    localStorage.setItem("active_job_id", currentJobId);
+                    
+                    if (document.getElementById("job-id-display")) {
+                        document.getElementById("job-id-display").textContent = currentJobId;
+                    }
+                    
+                    document.getElementById('progress-text').textContent = "Server received video! Waiting for enhancement queue...";
                     document.getElementById('progress-fill').style.width = '30%';
-                    // Gunakan fungsi polling dari app.js
+                    
                     if (typeof startPolling === "function") {
                         startPolling(data.job_id);
                     }
+                    startElapsedTimer();
+                    showToast(`✅ Job started: ${currentJobId}`, "info");
                 } else {
-                    throw new Error(data.error || "Gagal memulai proses Enhancement");
+                    throw new Error(data.error || "Failed to start Enhancement process");
                 }
             } catch (err) {
                 alert("❌ Error: " + err.message);
                 document.getElementById('generate-btn').disabled = false;
-                document.getElementById('progress-section').style.display = 'none';
+                document.getElementById('generate-btn').innerHTML = `<i class="fas fa-play" style="margin-right: 8px;"></i> Run AI Video Editor`;
+                showSection(null);
             }
         }
+
+        // Initialize timeline values on load
+        window.addEventListener('load', () => {
+            updateTimelineUI();
+        });
     </script>
 </body>
 </html>

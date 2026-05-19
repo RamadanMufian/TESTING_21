@@ -26,7 +26,7 @@
             overflow-x: hidden;
         }
 
-        /* Animated Gradient Background dengan Partikel */
+        /* Animated Gradient Background with Particles */
         #particles-canvas {
             position: fixed;
             top: 0;
@@ -355,7 +355,7 @@
             }
         }
 
-        /* Video Container dengan Animasi */
+        /* Video Showcase with Animation */
         .video-showcase {
             position: relative;
             width: 100%;
@@ -911,7 +911,7 @@
             color: rgba(255, 255, 255, 0.9);
         }
 
-        /* Floating elements untuk background */
+        /* Floating background elements */
         .floating-elements {
             position: fixed;
             top: 0;
@@ -1023,7 +1023,7 @@
             }
         }
 
-        /* Modal untuk video fullscreen */
+        /* Modal for fullscreen video */
         .modal {
             display: none;
             position: fixed;
@@ -1128,13 +1128,13 @@
         <div class="float-element"></div>
     </div>
 
-    <!-- Canvas untuk Partikel -->
+    <!-- Particles Canvas -->
     <canvas id="particles-canvas"></canvas>
 
     <div class="gradient-bg"></div>
     <div class="grid-overlay"></div>
 
-    <!-- Modal untuk video fullscreen -->
+    <!-- Modal for fullscreen video -->
     <div class="modal" id="videoModal">
         <div class="modal-content">
             <video id="modalVideo" controls autoplay loop>
@@ -1154,7 +1154,7 @@
                 <a href="studio.html">Studio Flow</a>
                 <a href="image2video.html">Image to Video</a>
                 <a href="text2video.html">Text to Video</a>
-                <a href="video2video.html">Video to Video</a>
+                <a href="video2video.html">Video Editing</a>
                 <button class="btn-api" onclick="alert('🚀 API Access: Ready for integration!')">
                     <i class="fas fa-key"></i> API Access
                 </button>
@@ -1342,11 +1342,10 @@
                 <p>Custom styles and characters with your own training data. Fine-tune models for your unique creative
                     vision</p>
             </a>
-            <a href="edit.html" class="feature-card">
-                <div class="feature-icon"><i class="fas fa-cut"></i></div>
-                <h3>Retake & Extend</h3>
-                <p>Edit specific elements or extend scenes without starting over. Non-destructive video editing powered
-                    by AI</p>
+            <a href="video2video.html" class="feature-card">
+                <div class="feature-icon"><i class="fas fa-film"></i></div>
+                <h3>AI Video Editor</h3>
+                <p>Sharpen resolution, interpolate frame-rate, restore faces, and apply style redraws using our advanced multi-model neural pipeline.</p>
             </a>
         </div>
 
@@ -1456,7 +1455,7 @@
             }
         });
 
-        // Intersection Observer untuk animasi scroll
+        // Intersection Observer for scroll animation
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -1469,7 +1468,7 @@
             observer.observe(card);
         });
 
-        // Efek parallax mouse
+        // Mouse parallax effect
         document.addEventListener('mousemove', (e) => {
             const mouseX = e.clientX / window.innerWidth - 0.5;
             const mouseY = e.clientY / window.innerHeight - 0.5;
@@ -1488,7 +1487,7 @@
             });
         });
 
-        // Smooth scroll untuk anchor links
+        // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
